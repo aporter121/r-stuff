@@ -1,0 +1,191 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+## This is my R data exploring cheat sheet for the NCDR
+
+- I'm lazy
+- I have a lot to do
+- I have a bad memory and no time to full learn R
+
+
+# How to use
+
+Please steal the code...
+
+Run practice code on command line.
+Use the notebook to document your code / data learning.
+Add to a notebook or RMarkdown when done to save outputs.
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+
+# Here is how i connect and run basic SQL stuff
+
+# Connect to the NCDR
+This seems to work well, and is taken from the "connections" bit in RStudio. There's also lazy stuff there to load CSV and Excel.
+```{r connect}
+library(DBI)
+con <- dbConnect(odbc::odbc(), "NCDR", timeout = 10)
+
+```
+
+
+# Run Some SQL
+This way of running SQL gives you nice colour coded SQL in R
+you can pass variables to this if you like
+
+```{sql connection = con, output.var="patient"}
+-- Can still do comments
+select * from NHSE_Sandbox_MidEast..temp_alex_EBI_Dec21_2
+
+/***
+comments example here
+***/
+```
+
+
+```{sql connection = con, output.var="stddata"}
+
+select * from NHSE_Sandbox_Rightcare..[NEURO2019-SUS020]
+
+```
+
+This approach can also do SQL from a file... need to insert example of that. 
+
+But I like the inline code - useful as a memory aid and good to share in outputs.
+
+
+
+
+# Data Explorer
+
+This is a useful package for data exploration, it creates some standard output graphs and tables. Some examples...
+
+Much better overview here: https://cran.r-project.org/web/packages/DataExplorer/vignettes/dataexplorer-intro.html
+
+i'm not 100% a fan, it seems to struggle with our large messy categorical data - but might be useful to explore in more detail.
+
+```{r}
+library(DataExplorer)
+introduce(patient)
+introduce(stddata)
+```
+
+
+```{r}
+plot_intro(patient)
+plot_intro(stddata)
+
+```
+
+Show bar charts for my data...
+
+(Spell consultant code is sensitive, but the interesting bit in the data - sorry removed for sharing)
+
+```{r}
+patient<- drop_columns(patient, c("Der_Procedure_All", "Spell_Consultant_Code"))
+
+plot_bar(patient)
+```
+
+histogram gives you a dist of all variables, maybe need to change which are numerical or categorical data. 
+
+```{r}
+plot_histogram(patient)
+
+```
+i'm sure this does fun things if the data is well formed...
+
+
+```{r}
+
+plot_boxplot(stddata, by ="IndicatorID")
+
+
+```
+
+# PivotTables
+
+This is a fun library for basic data exploration, as it lets you build a pivot table from any data set and play with it, kinda like Excel. 
+
+It also presents data to the user in a knitted markdown output.
+
+try changing me to a Sum not a count, then add geographyID as a column, and change me to a bar chart...
+
+```{r}
+library(rpivotTable)
+rpivotTable(stddata)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Esquisse
+
+This libary is great for cheating at ggplot2, but run on command line.
+
+One of my favourite data exploration packages and a huge time saver for lazy analysts. 
+
+Really hard to demo without letting you play with it.
+
+```{r eval=FALSE}
+library(esquisse)
+library(tidyverse)
+library(ggplot2)
+
+
+esquisser(patient) 
+
+esquisser(patient, viewer="browser")
+
+
+```
+
+But the idea is that it pumps out nicely formatted ggplots... that you can copy and paste and reproduce quicky and easily, without remembering all the formatting tricks.
+
+```{r}
+
+library(ggplot2)
+
+ggplot(patient) +
+  aes(x = Spell_Primary_Diagnosis, fill = Final_Derived_CCG) +
+  geom_bar() +
+  scale_fill_brewer(palette = "Paired", direction = 1) +
+  labs(
+    x = "X label goodness",
+    y = "oh helo Y label",
+    title = "Primary Diagnosis by CCG",
+    subtitle = "Something something something",
+    caption = "Next Slide Please...",
+    fill = "hi"
+  ) +
+  ggthemes::theme_economist() +
+  theme(legend.position = "top")
+
+```
+
+
